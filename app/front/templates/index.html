@@ -1,10 +1,55 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatSpace - Главная</title>
+    <link rel="stylesheet" href="../static/index.css">
 </head>
 <body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>ChatSpace</h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link active">Главная</a>
+                <a href="chat.html" class="nav-link">Чат</a>
+                <a href="#" class="nav-link">О нас</a>
+            </nav>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline">Войти</a>
+                <a href="register.html" class="btn btn-primary">Регистрация</a>
+            </div>
+        </div>
+    </header>
 
+    <main class="hero">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Добро пожаловать в ChatSpace</h1>
+            <p class="hero-subtitle">Современная платформа для общения с друзьями и сообществами</p>
+            <div class="hero-features">
+                <div class="feature">
+                    <div class="feature-icon">💬</div>
+                    <h3>Мгновенные сообщения</h3>
+                    <p>Общайтесь в реальном времени</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🎮</div>
+                    <h3>Игровые комнаты</h3>
+                    <p>Создавайте каналы для игр</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Безопасность</h3>
+                    <p>Защищенное соединение</p>
+                </div>
+            </div>
+            <a href="register.html" class="btn btn-hero">Начать общение</a>
+        </div>
+    </main>
+
+    <script src="../static/index.js"></script>
 </body>
 </html>

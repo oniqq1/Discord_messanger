@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatSpace - Вход</title>
+    <link rel="stylesheet" href="../static/index.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>ChatSpace</h1>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-link">Главная</a>
+                <a href="chat.html" class="nav-link">Чат</a>
+                <a href="#" class="nav-link">О нас</a>
+            </nav>
+            <div class="auth-buttons">
+                <a href="login.html" class="btn btn-outline active">Войти</a>
+                <a href="register.html" class="btn btn-primary">Регистрация</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="auth-page">
+        <div class="auth-container">
+            <div class="auth-form">
+                <h2>Добро пожаловать!</h2>
+                <p>Мы рады видеть вас снова!</p>
+                
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="email">Email или телефон</label>
+                        <input type="text" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    
+                    <a href="#" class="forgot-password">Забыли пароль?</a>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Войти</button>
+                </form>
+                
+                <p class="auth-switch">
+                    Нужен аккаунт? <a href="register.html">Зарегистрироваться</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script src="../static/index.js"></script>
+</body>
+</html>

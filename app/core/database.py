@@ -26,15 +26,14 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sender_id INTEGER NOT NULL,
-                receiver_id INTEGER NOT NULL,
+                rooms_id INTEGER NOT NULL,
                 content TEXT NOT NULL,
-                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (sender_id) REFERENCES users (id),
-                FOREIGN KEY (receiver_id) REFERENCES users (id)
+                timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        
         conn.commit()
-
+        
 def get_messages(sender_id, receiver_id):
     with get_db_connection() as conn:
         cursor = conn.cursor()

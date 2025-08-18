@@ -4,7 +4,7 @@ from .models import User
 from app.core.database import create_user, get_user
 
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["users"])
 
 
 @router.post("/register/")
