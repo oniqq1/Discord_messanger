@@ -1,21 +1,37 @@
-from fastapi import HTTPException, status, APIRouter
+from app.core.database import get_db_connection
 
-from .models import User
-from app.core.database import create_user, get_user
+def get_user(username):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+        return cursor.fetchone()
 
+def create_user(username,  email, password , photo):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO users (username, email, password, photo) VALUES (?, ?, ?, ?)',
+                       (username, email, password, photo))
+        conn.commit()
 
-router = APIRouter(prefix="/users", tags=["users"])
+        cursor.execute('SELECT * FROM users WHERE username = ?',
+                       (username,))
 
+        return cursor.fetchone()
 
-@router.post("/register/")
-async def register_user(data:User):
-    if not data:
-       return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    if get_user(username=data.username):
-        return HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="User already registered"
-        )
-    user = create_user(username=data.username,email=data.email,password=data.password,photo=data.photo)
-    return user
+def update_user(user_id, username_new, email_new, password_new, photo_new):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE users
+            SET username = ?, email = ?, password = ?, photo = ?
+            WHERE id = ?
+        ''', (username_new, email_new, password_new, photo_new, user_id))
+        conn.commit()
+        return cursor.rowcount > 0
+
+def delete_user(user_id, username):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM users WHERE id = ? AND username = ?', (user_id, username))
+        conn.commit()
+        return cursor.rowcount > 0

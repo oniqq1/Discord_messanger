@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .core.database import create_tables
+from app.core.database import create_tables
 from app.api import user_router
 from app.tests import test_router
 
