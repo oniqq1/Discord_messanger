@@ -19,8 +19,7 @@ def create_tables():
                 password TEXT NOT NULL,
                 photo TEXT NOT NULL 
             );
-        """
-                       )
+        """)
 
         cursor.execute(
             """
@@ -33,8 +32,7 @@ def create_tables():
                 FOREIGN KEY (sender_id) REFERENCES users (id),
                 FOREIGN KEY (receiver_id) REFERENCES users (id)
             );
-        """
-        )
+        """)
         conn.commit()
 
 def get_messages(sender_id, receiver_id):

@@ -1,7 +1,9 @@
 from pydantic_settings import BaseSettings
 from pathlib import Path
 
+
 BASE_DIR = Path(__file__).resolve().parent
+
 
 class Settings(BaseSettings):
     APP_NAME: str = "Messenger API"
@@ -16,6 +18,5 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-
 
 settings = Settings()
