@@ -1,29 +1,14 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
+{% extends "base.html" %}
+
+{% block head %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatSpace - Главная</title>
-    <link rel="stylesheet" href="../static/index.css">
-</head>
-<body>
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <h1>ChatSpace</h1>
-            </div>
-            <nav class="nav">
-                <a href="index.html" class="nav-link active">Главная</a>
-                <a href="chat.html" class="nav-link">Чат</a>
-                <a href="#" class="nav-link">О нас</a>
-            </nav>
-            <div class="auth-buttons">
-                <a href="login.html" class="btn btn-outline">Войти</a>
-                <a href="register.html" class="btn btn-primary">Регистрация</a>
-            </div>
-        </div>
-    </header>
+    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+{% endblock %}
 
+{% block title %}ChatSpace Головна{% endblock %}
+
+{% block content %}
     <main class="hero">
         <div class="hero-background"></div>
         <div class="hero-content">
@@ -46,10 +31,9 @@
                     <p>Защищенное соединение</p>
                 </div>
             </div>
-            <a href="register.html" class="btn btn-hero">Начать общение</a>
+            <a href="{{ url_for('register_user') }}" class="btn btn-hero">Начать общение</a>
         </div>
     </main>
 
     <script src="../static/index.js"></script>
-</body>
-</html>
+{% endblock %}

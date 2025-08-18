@@ -1,30 +1,15 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
+{% extends "base.html" %}
+
+{% block head %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatSpace - Регистрация</title>
-    <link rel="stylesheet" href="../static/index.css">
-</head>
-<body>
-    <header class="header">
-        <div class="container">
-            <div class="logo">
-                <h1>ChatSpace</h1>
-            </div>
-            <nav class="nav">
-                <a href="index.html" class="nav-link">Главная</a>
-                <a href="chat.html" class="nav-link">Чат</a>
-                <a href="#" class="nav-link">О нас</a>
-            </nav>
-            <div class="auth-buttons">
-                <a href="login.html" class="btn btn-outline">Войти</a>
-                <a href="register.html" class="btn btn-primary active">Регистрация</a>
-            </div>
-        </div>
-    </header>
+    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+{% endblock %}
 
-    <main class="auth-page">
+{% block title %}ChatSpace Регистрация{% endblock %}
+
+{% block content %}
+<main class="auth-page">
         <div class="auth-container">
             <div class="auth-form">
                 <h2>Создать аккаунт</h2>
@@ -34,11 +19,6 @@
                     <div class="form-group">
                         <label for="username">Имя пользователя</label>
                         <input type="text" id="username" name="username" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
                     </div>
                     
                     <div class="form-group">
@@ -55,12 +35,11 @@
                 </form>
                 
                 <p class="auth-switch">
-                    Уже есть аккаунт? <a href="login.html">Войти</a>
+                    Уже есть аккаунт? <a href="{{ url_for('login_user') }}">Войти</a>
                 </p>
             </div>
         </div>
     </main>
 
     <script src="../static/index.js"></script>
-</body>
-</html>
+{% endblock %}

@@ -3,7 +3,16 @@ from app.core.config import templates
 
 
 router = APIRouter()
+connections = {}
 
+
+@router.get("/")
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@router.get("/about/")
+async def about(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
 
 @router.get(
     "/chat/",
@@ -14,9 +23,6 @@ router = APIRouter()
 )
 async def get_chat(request: Request):
     return templates.TemplateResponse("chat.html", {"request": request})
-
-
-connections = {}
 
 @router.websocket("/ws/{room}")
 async def websocket_endpoint(websocket: WebSocket, room: str):
