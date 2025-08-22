@@ -1,5 +1,7 @@
-from fastapi import WebSocket, status, Request, WebSocketDisconnect, APIRouter
+from fastapi import WebSocket, status, Request, WebSocketDisconnect, APIRouter, Depends
+
 from app.core.config import templates
+from app.auth import oauth2_scheme
 
 
 router = APIRouter()
@@ -21,7 +23,7 @@ async def about(request: Request):
     tags=["Чат"],
     status_code=status.HTTP_200_OK,
 )
-async def get_chat(request: Request):
+async def get_chat(request: Request, token: str = Depends(oauth2_scheme)):
     return templates.TemplateResponse("chat.html", {"request": request})
 
 @router.websocket("/ws/{room}")

@@ -15,7 +15,6 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
-                email TEXT NOT NULL UNIQUE,
                 password TEXT NOT NULL,
                 photo TEXT NOT NULL 
             );
@@ -50,22 +49,22 @@ def get_user(username):
         cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
         return cursor.fetchone()
 
-def create_user(username,  email, password , photo):
+def create_user(username, password , photo):
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, email, password, photo) VALUES (?, ?, ?, ?)',
-                       (username, email, password, photo))
+        cursor.execute('INSERT INTO users (username, password, photo) VALUES (?, ?, ?, ?)',
+                       (username, password, photo))
         conn.commit()
         return cursor.fetchone()
 
-def update_user(user_id, username_new, email_new, password_new, photo_new):
+def update_user(user_id, username_new, password_new, photo_new):
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE users
-            SET username = ?, email = ?, password = ?, photo = ?
+            SET username = ?, password = ?, photo = ?
             WHERE id = ?
-        ''', (username_new, email_new, password_new, photo_new, user_id))
+        ''', (username_new, password_new, photo_new, user_id))
         conn.commit()
         return cursor.rowcount > 0
 
