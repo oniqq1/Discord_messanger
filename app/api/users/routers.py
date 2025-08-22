@@ -8,6 +8,8 @@ from app.api.users.crud import get_user, create_user
 router = APIRouter(tags=["users"])
 
 
+
+
 @router.get("/register/")
 async def register_user(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})

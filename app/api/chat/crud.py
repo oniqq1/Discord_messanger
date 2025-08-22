@@ -1,8 +1,10 @@
+
 from fastapi import WebSocket, status, Request, WebSocketDisconnect, APIRouter , Depends
 from app.core.config import templates
 from app.auth import get_current_user
 from jose import jwt, JWTError
 from app.core.config import settings
+
 router = APIRouter()
 connections = {}
 
@@ -15,10 +17,12 @@ async def index(request: Request):
 async def about(request: Request):
     return templates.TemplateResponse("about.html", {"request": request})
 
+
 # Страница чата
 @router.get("/chat/")
 async def get_chat(request: Request, current_user: dict = get_current_user):
     return templates.TemplateResponse("chat.html", {"request": request, "user": current_user})
+
 
 # WebSocket
 @router.websocket("/ws/{room}")

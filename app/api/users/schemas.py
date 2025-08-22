@@ -6,7 +6,11 @@ class UserCreate(BaseModel):
     password: str
 
 
+
+
 class User(BaseModel):
     username: str
+
     password: str
     photo: str
+
