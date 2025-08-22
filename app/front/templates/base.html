@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+{% block navbar %}
+
+	<header class="header">
+        <div class="container">
+            <div class="logo">
+                <h1>ChatSpace</h1>
+            </div>
+            <nav class="nav">
+                <a href="{{ url_for('index') }}" class="nav-link">Главная</a>
+                <a href="{{ url_for('get_chat') }}" class="nav-link">Чат</a>
+                <a href="{{ url_for('about') }}" class="nav-link">О нас</a>
+            </nav>
+            <div class="auth-buttons">
+                <a href="{{ url_for('login_user') }}" class="btn btn-outline">Войти</a>
+                <a href="{{ url_for('register_user') }}" class="btn btn-primary">Регистрация</a>
+            </div>
+        </div>
+    </header>
+
+{% endblock %}
+
+    <div>
+        {% block content %}{% endblock %}
+    </div>
+
+   <script src="../static/index.js"></script>
+</body>
+</html>
