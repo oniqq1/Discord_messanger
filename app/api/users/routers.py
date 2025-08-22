@@ -21,7 +21,7 @@ async def register_user(data:UserCreate = Depends()):
 
     hashed_password = hash_password(data.password)
 
-    user = create_user(username=data.username,email=data.email,password=hashed_password,photo=data.photo)
+    user = create_user(username=data.username,password=hashed_password,photo=data.photo)
 
     return user
 
