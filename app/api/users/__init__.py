@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .crud import router as user_router
+from .routers import router as user_router
 from .models import *
 from .schemas import *
 
