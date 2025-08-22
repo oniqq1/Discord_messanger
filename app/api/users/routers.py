@@ -1,52 +1,45 @@
-from fastapi import HTTPException, status, APIRouter , Depends
-from app.api.users.crud import get_user,create_user
-from .schemas import UserCreate
-from app.auth import hash_password , verify_password , create_access_token , Token
-from fastapi.security import OAuth2PasswordRequestForm
+
+from fastapi import APIRouter, Request, Form, HTTPException, status
+from fastapi.responses import RedirectResponse
+from app.core.config import templates
+from app.api.users.crud import get_user, create_user
+
 
 router = APIRouter(tags=["users"])
 
 
+@router.get("/register/")
+async def register_user(request: Request):
+    return templates.TemplateResponse("register.html", {"request": request})
+
 @router.post("/register/")
-async def register_user(data:UserCreate = Depends()):
+async def register_page(username: str = Form(...), password: str = Form(...), confirmPassword: str = Form(...)):
+    from app.auth import hash_password, verify_password, create_access_token
+    if not username or not password or not confirmPassword:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing data")
 
-    if not data:
-       return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
-    if get_user(username=data.username):
-        return HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="User already registered"
-        )
+    if get_user(username=username):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already registered")
 
-    hashed_password = hash_password(data.password)
+    if password != confirmPassword:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
 
-    user = create_user(username=data.username,email=data.email,password=hashed_password,photo=data.photo)
-
-    return user
+    hashed = hash_password(password)
+    create_user(username=username, password=hashed, photo="https://upload.wikimedia.org/wikipedia/commons/2/20/Photoshop_CC_icon.png")
+    return RedirectResponse(url="/login/", status_code=status.HTTP_303_SEE_OTHER)
 
 
-@router.post("/login")
-async def login_user(data: OAuth2PasswordRequestForm = Depends()):
+@router.get("/login/")
+async def login_user(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
 
-    if not data:
-        return HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-        )
+@router.post("/login/")
+async def login_page(username: str = Form(...), password: str = Form(...)):
+    from app.auth import hash_password, verify_password, create_access_token
+    user = dict(get_user(username))
+    if not user or not verify_password(password, user.get("password")):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect credentials")
 
-    user = dict(get_user(username=data.username))
-
-    if not user:
-        return HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
-
-    if not verify_password(data.password, user.get('password')):
-        print(verify_password(data.password, user.get('password')))
-        return HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect password"
-        )
-
-    token = create_access_token(data={"sub": user.get('username')})
-
-    return Token(access_token=token)
+    access_token = create_access_token(data={"sub": username})
+    redirect_url = f"/chat/?token={access_token}"
+    return RedirectResponse(url=redirect_url, status_code=303)
