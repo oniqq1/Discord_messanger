@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+{% endblock %}
+
+{% block title %}ChatSpace Регистрация{% endblock %}
+
+{% block content %}
+<main class="auth-page">
+        <div class="auth-container">
+            <div class="auth-form">
+                <h2>Создать аккаунт</h2>
+                <p>Присоединяйтесь к нашему сообществу!</p>
+                
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="username">Имя пользователя</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Пароль</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Подтвердите пароль</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-full">Продолжить</button>
+                </form>
+                
+                <p class="auth-switch">
+                    Уже есть аккаунт? <a href="{{ url_for('login_user') }}">Войти</a>
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script src="../static/index.js"></script>
+{% endblock %}
