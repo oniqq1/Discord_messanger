@@ -115,6 +115,7 @@ async def profile_edit_page(
             detail="Invalid file type. Only JPEG, PNG, are allowed."
         )
 
+
     file_ext = os.path.splitext(avatar.filename)[1]
     filename = f"{uuid4().hex}{file_ext}"
     file_path = os.path.join('app','front',"avatars", filename)
