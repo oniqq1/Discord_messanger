@@ -15,14 +15,14 @@ def create_user(username,   password , photo):
         conn.commit()
         return cursor.fetchone()
 
-def update_user(user_id, username_new, password_new, photo_new):
+def update_user(user_id, username_new,  photo_new):
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE users
-            SET username = ?, password = ?, photo = ?
+            SET username = ?, photo = ?
             WHERE id = ?
-        ''', (username_new, password_new, photo_new, user_id))
+        ''', (username_new, photo_new, user_id))
         conn.commit()
         return cursor.rowcount > 0
 
