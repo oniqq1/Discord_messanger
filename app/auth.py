@@ -11,6 +11,13 @@ SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
+
+
+class Token():
+    access_token: str
+    token_type: str
+
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
 
