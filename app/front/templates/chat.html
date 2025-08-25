@@ -50,39 +50,68 @@
 </main>
 
 <script>
-    let ws = null;
-    let connected = false;
-    let currentRoom = null;
+let ws = null;
+let connected = false;
+let currentRoom = null;
 
-    function getQueryParam(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-    }
-    const token = getQueryParam("token");
+
+async function checkAuth() {
+  let token = null;
+
+  try {
+    const res = await fetch("/get-token");
+    const data = await res.json();
+    token = data.token;
+
     if (!token) {
-        alert("Вы не авторизованы. Пожалуйста, войдите.");
+      alert("Вы не авторизованы. Пожалуйста, войдите.");
     }
+  } catch (err) {
+    alert("Ошибка авторизации");
+  }
+}
 
-    document.getElementById('addRoomBtn').onclick = function() {
-        document.getElementById('roomModal').style.display = 'block';
-        document.getElementById('roomInput').focus();
-    };
-    document.getElementById('closeModal').onclick = function() {
+checkAuth();
+
+// ---------- Модальное окно ----------
+document.getElementById('addRoomBtn').onclick = function() {
+    document.getElementById('roomModal').style.display = 'block';
+    document.getElementById('roomInput').focus();
+};
+document.getElementById('closeModal').onclick = function() {
+    document.getElementById('roomModal').style.display = 'none';
+};
+document.getElementById('roomModal').onclick = function(e) {
+    if (e.target === this) this.style.display = 'none';
+};
+document.getElementById('roomInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('joinRoomBtn').click();
+});
+
+// ---------- Присоединение к комнате ----------
+document.getElementById('joinRoomBtn').onclick = function() {
+    const room = document.getElementById('roomInput').value.trim();
+    if (room) {
+        joinRoom(room);
         document.getElementById('roomModal').style.display = 'none';
-    };
-    document.getElementById('roomModal').onclick = function(e) {
-        if (e.target === this) this.style.display = 'none';
-    };
-    document.getElementById('roomInput').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') document.getElementById('joinRoomBtn').click();
-    });
+    }
+};
 
-    document.getElementById('joinRoomBtn').onclick = function() {
-        const room = document.getElementById('roomInput').value.trim();
-        if (room) {
-            joinRoom(room);
-            document.getElementById('roomModal').style.display = 'none';
-        }
+function joinRoom(room) {
+    if (ws) {
+        ws.onclose = null;
+        ws.close();
+    }
+    currentRoom = room;
+
+    if (!currentRoom) return;
+
+    // Cookie пойдут сами, если тот же origin
+    ws = new WebSocket(`ws://127.0.0.1:8000/ws/${room}`);
+
+    ws.onopen = () => {
+        connected = true;
+        appendSystem(`Подключено к комнате: ${room}`);
     };
 
     function joinRoom(room) {
@@ -91,29 +120,17 @@
             ws.close();
         }
 
-        currentRoom = room;
-        if (!token) {
-            appendSystem("Вы не авторизованы!");
-            return;
-        }
+    ws.onclose = () => {
+        if (connected) appendSystem("Отключено от сервера");
+        connected = false;
+    };
 
-        ws = new WebSocket(`ws://127.0.0.1:8000/ws/${room}?token=${token}`);
 
-        ws.onopen = () => {
-            connected = true;
-            appendSystem(`Подключено к комнате: ${room}`);
-        };
 
-        ws.onmessage = (e) => appendMessage(e.data);
 
-        ws.onclose = () => {
-            if (connected) appendSystem("Отключено от сервера");
-            connected = false;
-        };
-    }
-
+// ---------- Отправка сообщений ----------
     document.getElementById('sendButton').onclick = sendMessage;
-    document.getElementById('messageInput').addEventListener('keydown', function(e) {
+    document.getElementById('messageInput').addEventListener('keydown', function (e) {
         if (e.key === 'Enter') sendMessage();
     });
 
@@ -128,6 +145,56 @@
             input.value = '';
         }
     }
+
+// ---------- Отключение ----------
+    document.getElementById('disconnectButton').onclick = function () {
+        if (ws && connected) {
+            ws.onclose = null;
+            ws.close();
+            appendSystem("Вы отключились от комнаты");
+            connected = false;
+        }
+    };
+
+// ---------- Отображение сообщений ----------
+    function appendMessage(text) {
+        const chat = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        msgDiv.innerHTML = `
+        <div class="message-avatar">
+                    <img src="{{ user.photo }}" alt="avatar" class="user-avatar">
+        </div>
+        <div class="message-content">
+            <div class="message-header">
+                <span class="username">{{ user.username }}</span>
+                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="message-text">${text}</div>
+        </div>
+    `;
+        chat.appendChild(msgDiv);
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    function appendSystem(text) {
+        const chat = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        msgDiv.innerHTML = `
+        <div class="message-avatar">S</div>
+        <div class="message-content">
+            <div class="message-header">
+                <span class="username" style="color:gray;">System</span>
+                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="message-text" style="color:gray;">${text}</div>
+        </div>
+    `;
+        chat.appendChild(msgDiv);
+        chat.scrollTop = chat.scrollHeight;
+    }
+}
 
     document.getElementById('disconnectButton').onclick = function() {
         if (ws && connected) {
@@ -150,24 +217,6 @@
                     <span class="timestamp">${new Date().toLocaleTimeString()}</span>
                 </div>
                 <div class="message-text">${text}</div>
-            </div>
-        `;
-        chat.appendChild(msgDiv);
-        chat.scrollTop = chat.scrollHeight;
-    }
-
-    function appendSystem(text) {
-        const chat = document.getElementById('chatMessages');
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'message';
-        msgDiv.innerHTML = `
-            <div class="message-avatar">S</div>
-            <div class="message-content">
-                <div class="message-header">
-                    <span class="username" style="color:gray;">System</span>
-                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
-                </div>
-                <div class="message-text" style="color:gray;">${text}</div>
             </div>
         `;
         chat.appendChild(msgDiv);

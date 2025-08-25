@@ -1,10 +1,12 @@
-from fastapi import WebSocket, Request, WebSocketDisconnect, APIRouter
+from fastapi import WebSocket, status, Request, WebSocketDisconnect, APIRouter, Depends, HTTPException
 from app.core.config import templates
 from app.auth import get_current_user
+from jose import jwt, JWTError
+from app.core.config import settings
+from app.api.users.crud import get_user
 
 router = APIRouter()
 connections = {}
-
 
 @router.get("/")
 async def index(request: Request):
@@ -15,20 +17,21 @@ async def about(request: Request):
     return templates.TemplateResponse("about.html", {"request": request})
 
 @router.get("/chat/")
-async def get_chat(request: Request, current_user: dict = get_current_user):
-    return templates.TemplateResponse("chat.html", {"request": request, "user": current_user})
+async def get_chat(request: Request, current_user: dict = Depends(get_current_user)):
+    token = request.cookies.get("access_token")
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+    print(current_user)
+    current_user["photo"].replace("\\", "//")
+    return templates.TemplateResponse("chat.html", {"request": request, "user": current_user , "token": token})
 
 @router.websocket("/ws/{room}")
 async def websocket_endpoint(websocket: WebSocket, room: str):
-    token = websocket.query_params.get("token")
+    token = websocket.cookies.get("access_token")
     if not token:
         await websocket.close(code=1008)
         return
-
-    from jose import jwt, JWTError
-    from app.core.config import settings
-    from app.api.users.crud import get_user
-
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         username = payload.get("sub")
@@ -40,14 +43,12 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
         return
 
     await websocket.accept()
-    if room not in connections:
-        connections[room] = []
-    connections[room].append(websocket)
+    connections.setdefault(room, []).append(websocket)
 
     try:
         while True:
             data = await websocket.receive_text()
-            for client in connections[room]:
+            for client in list(connections.get(room, [])):
                 await client.send_text(f"{data}")
     except WebSocketDisconnect:
         connections[room].remove(websocket)
