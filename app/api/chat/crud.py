@@ -42,6 +42,7 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
         await websocket.close(code=1008)
         return
 
+
     await websocket.accept()
     connections.setdefault(room, []).append(websocket)
 
