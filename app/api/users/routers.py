@@ -27,6 +27,7 @@ async def register_page(username: str = Form(...), password: str = Form(...), co
     create_user(username=username, password=hashed, photo="https://upload.wikimedia.org/wikipedia/commons/2/20/Photoshop_CC_icon.png")
     return RedirectResponse(url="/login/", status_code=status.HTTP_303_SEE_OTHER)
 
+
 @router.get("/login/")
 async def login_user(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})

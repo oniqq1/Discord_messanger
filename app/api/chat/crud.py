@@ -4,7 +4,7 @@ from app.auth import get_current_user
 from jose import jwt, JWTError
 from app.core.config import settings
 from app.api.users.crud import get_user
-
+from app.core.database import add_room , add_member_to_room
 router = APIRouter()
 connections = {}
 
@@ -45,6 +45,10 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
 
     await websocket.accept()
     connections.setdefault(room, []).append(websocket)
+
+    user_id = get_current_user(token=token).get("id")
+    add_room(room,user_id)
+    add_member_to_room(room,user_id)
 
     try:
         while True:
