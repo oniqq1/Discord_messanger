@@ -16,7 +16,6 @@ async def index(request: Request):
 async def about(request: Request):
     return templates.TemplateResponse("about.html", {"request": request})
 
-
 @router.get("/chat/")
 async def get_chat(request: Request, current_user: dict = Depends(get_current_user)):
     token = request.cookies.get("access_token")
