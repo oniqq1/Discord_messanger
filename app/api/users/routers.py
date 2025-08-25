@@ -42,6 +42,7 @@ async def register_page(username: str = Form(...), password: str = Form(...), co
     )
     return RedirectResponse(url="/login/", status_code=303)
 
+
 @router.get("/login/")
 async def login_user(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
