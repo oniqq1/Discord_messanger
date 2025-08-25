@@ -19,7 +19,6 @@ def create_tables():
                 photo TEXT NOT NULL 
             );
         """)
-
         cursor.execute(
             """
             CREATE TABLE IF NOT EXISTS messages (
@@ -30,7 +29,6 @@ def create_tables():
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        
         conn.commit()
         
 def get_messages(sender_id, receiver_id):
@@ -42,4 +40,3 @@ def get_messages(sender_id, receiver_id):
             ORDER BY timestamp
         ''', (sender_id, receiver_id, receiver_id, sender_id))
         return cursor.fetchall()
-

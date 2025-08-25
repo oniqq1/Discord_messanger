@@ -5,6 +5,7 @@ from passlib.context import CryptContext
 from app.core.config import settings
 from app.api.users.crud import get_user
 
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = settings.SECRET_KEY
@@ -12,11 +13,12 @@ ALGORITHM = settings.ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
+
 
 class Token():
     access_token: str
     token_type: str
-
 
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
@@ -48,4 +50,3 @@ def     get_current_user(request: Request):
         return dict(user)
     except JWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
-

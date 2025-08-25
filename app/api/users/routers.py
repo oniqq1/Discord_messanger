@@ -5,31 +5,47 @@ from uuid import uuid4
 from app.core.config import templates
 from app.api.users.crud import get_user, create_user , update_user
 
+
 router = APIRouter(tags=["users"])
+
 
 @router.get("/register/")
 async def register_user(request: Request):
     return templates.TemplateResponse("register.html", {"request": request})
+
 
 @router.post("/register/")
 async def register_page(username: str = Form(...), password: str = Form(...), confirmPassword: str = Form(...)):
     from app.auth import hash_password
     if not username or not password or not confirmPassword:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing data")
+    error = None
 
-    if get_user(username=username):
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already registered")
+    if not username or not password or not confirmPassword:
+        error = "Заполните все поля."
+    elif get_user(username=username):
+        error = "Пользователь с таким именем уже зарегистрирован."
+    elif password != confirmPassword:
+        error = "Пароли не совпадают."
 
-    if password != confirmPassword:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Passwords do not match")
+    if error:
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "error": error, "username": username}
+        )
 
     hashed = hash_password(password)
-    create_user(username=username, password=hashed, photo="https://upload.wikimedia.org/wikipedia/commons/2/20/Photoshop_CC_icon.png")
-    return RedirectResponse(url="/login/", status_code=status.HTTP_303_SEE_OTHER)
+    create_user(
+        username=username,
+        password=hashed,
+        photo="https://upload.wikimedia.org/wikipedia/commons/2/20/Photoshop_CC_icon.png"
+    )
+    return RedirectResponse(url="/login/", status_code=303)
 
 @router.get("/login/")
 async def login_user(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
+
 
 @router.post("/login/")
 async def login_page(username: str = Form(...), password: str = Form(...)):

@@ -114,7 +114,11 @@ function joinRoom(room) {
         appendSystem(`Подключено к комнате: ${room}`);
     };
 
-    ws.onmessage = (e) => appendMessage(e.data);
+    function joinRoom(room) {
+        if (ws) {
+            ws.onclose = null;
+            ws.close();
+        }
 
     ws.onclose = () => {
         if (connected) appendSystem("Отключено от сервера");
@@ -192,6 +196,31 @@ function joinRoom(room) {
     }
 }
 
+    document.getElementById('disconnectButton').onclick = function() {
+        if (ws && connected) {
+            ws.onclose = null;
+            ws.close();
+            appendSystem("Вы отключились от комнаты");
+            connected = false;
+        }
+    };
 
+    function appendMessage(text) {
+        const chat = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message';
+        msgDiv.innerHTML = `
+            <div class="message-avatar">U</div>
+            <div class="message-content">
+                <div class="message-header">
+                    <span class="username">User</span>
+                    <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="message-text">${text}</div>
+            </div>
+        `;
+        chat.appendChild(msgDiv);
+        chat.scrollTop = chat.scrollHeight;
+    }
 </script>
 {% endblock %}
