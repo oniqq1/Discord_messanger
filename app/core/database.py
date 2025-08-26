@@ -62,27 +62,8 @@ def add_message(sender_id, roomname, content):
             VALUES (?, ?, ?)
         ''', (sender_id, roomname, content))
         conn.commit()
-        conn.close()
 
 
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute('''SELECT members FROM rooms WHERE roomname = ?''', (roomname,))
-        members_new = cursor.fetchone()
-        conn.close()
-
-
-    members = members_new[0]
-
-    members += f', {sender_id} '
-
-    with get_db_connection()  as conn:
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO rooms (roomname , members) VALUES (?, ?)', (roomname, members))
-        conn.commit()
-        conn.close()
-
-    return members
 
 
 def add_room(roomname, user_id):

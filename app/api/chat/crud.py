@@ -4,7 +4,7 @@ from app.auth import get_current_user
 from jose import jwt, JWTError
 from app.core.config import settings
 from app.api.users.crud import get_user
-from app.core.database import add_room , add_member_to_room
+from app.core.database import add_room , add_member_to_room , add_message
 router = APIRouter()
 connections = {}
 
@@ -22,9 +22,9 @@ async def get_chat(request: Request, current_user: dict = Depends(get_current_us
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
-    print(current_user)
+
     current_user["photo"].replace("\\", "//")
-    return templates.TemplateResponse("chat.html", {"request": request, "user": current_user , "token": token})
+    return templates.TemplateResponse("chat.html", {"request": request, "user": current_user })
 
 @router.websocket("/ws/{room}")
 async def websocket_endpoint(websocket: WebSocket, room: str):
@@ -53,6 +53,7 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
     try:
         while True:
             data = await websocket.receive_text()
+            add_message(user_id, room, data)
             for client in list(connections.get(room, [])):
                 await client.send_text(f"{data}")
     except WebSocketDisconnect:

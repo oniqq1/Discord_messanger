@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Form, HTTPException, status , UploadFile
+from fastapi import APIRouter, Request, Form, HTTPException, status , UploadFile , File
 from fastapi.responses import RedirectResponse
 import os
 from uuid import uuid4
@@ -31,7 +31,7 @@ async def register_page(username: str = Form(...), password: str = Form(...), co
     if error:
         return templates.TemplateResponse(
             "register.html",
-            {"request": request, "error": error, "username": username}
+            {"error": error, "username": username}
         )
 
     hashed = hash_password(password)
@@ -103,11 +103,11 @@ async def profile_edit(request: Request):
 @router.post('/profile/edit/')
 async def profile_edit_page(
     request: Request,
-    avatar: UploadFile = UploadFile(...),
-    username_new: str = Form(...)
+    username_new: str = Form(...),
+    avatar: UploadFile = File(None)  # теперь фото необязательно
 ):
-
     from app.auth import get_current_user , create_access_token
+    # --- Проверка авторизации ---
     try:
         current_user = get_current_user(request)
         if not current_user:
@@ -115,40 +115,59 @@ async def profile_edit_page(
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
+    # --- Проверка уникальности username ---
     try:
-        print(dict(get_user(username=username_new)).get("id"))
-        print(current_user.get("id"))
-        if dict(get_user(username=username_new)).get("id") != current_user.get("id"):
-            return HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User with this username already exists")
+        existing_user = dict(get_user(username=username_new))
+        if existing_user and existing_user.get("id") != current_user.get("id"):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="User with this username already exists"
+            )
     except Exception as e:
         pass
 
-
-    allowed_types = ["image/jpeg", "image/png"]
-
-    if avatar.content_type not in allowed_types:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file type. Only JPEG, PNG, are allowed."
-        )
+    photo_path = current_user.get("photo")  # текущее фото (например /avatars/xxxx.png)
 
 
-    file_ext = os.path.splitext(avatar.filename)[1]
-    filename = f"{uuid4().hex}{file_ext}"
-    file_path = os.path.join('app','front',"avatars", filename)
+    if avatar.filename:
+        allowed_types = ["image/jpeg", "image/png"]
 
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        if avatar.content_type not in allowed_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid file type. Only JPEG, PNG are allowed."
+            )
 
-    with open(file_path, "wb") as f:
+        # Удаляем старое фото, если оно есть и не дефолтное
+        if photo_path and not photo_path.endswith("default.png"):
+            old_path = os.path.join("app", "front", photo_path.lstrip("/"))
+            if os.path.exists(old_path):
+                try:
+                    os.remove(old_path)
+                except Exception:
+                    pass
+
+        # Сохраняем новое
+        file_ext = os.path.splitext(avatar.filename)[1]
+        filename = f"{uuid4().hex}{file_ext}"
+        file_path = os.path.join('app', 'front', "avatars", filename)
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
         content = await avatar.read()
-        f.write(content)
+        with open(file_path, "wb") as f:
+            f.write(content)
 
-    update_user(user_id=current_user.get("id"), username_new=username_new, photo_new=f"/avatars/{filename}")
+        photo_path = f"/avatars/{filename}"
 
+    # --- Обновляем юзера ---
+    update_user(
+        user_id=current_user.get("id"),
+        username_new=username_new,
+        photo_new=photo_path
+    )
 
-
+    # --- Новый access token ---
     access_token = create_access_token(data={"sub": username_new})
-
     response = RedirectResponse(url='/', status_code=303)
     response.set_cookie(
         key="access_token",
