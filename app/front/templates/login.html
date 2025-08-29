@@ -15,9 +15,17 @@
                 <h2>Добро пожаловать!</h2>
                 <p>Мы рады видеть вас снова!</p>
                 
-                <form id="loginForm">
+                <form method="post" action="/login/">
+
+                    {% if error %}
+                    <div class="error-message">
+                        <span>{{ error }}</span>
+                        <button type="button" class="close-btn" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                    {% endif %}
+                    
                     <div class="form-group">
-                        <label for="email">Имя</label>
+                        <label for="username">Имя</label>
                         <input type="text" id="username" name="username" required>
                     </div>
                     
@@ -37,4 +45,21 @@
     </main>
 
     <script src="../static/index.js"></script>
+    <style>
+    .error-message {
+        background-color: #ffe6e6;
+        color: #a00;
+        border: 1px solid #a00;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        font-weight: bold;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    </style>
 {% endblock %}

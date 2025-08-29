@@ -25,9 +25,18 @@ def create_tables():
             CREATE TABLE IF NOT EXISTS messages (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sender_id INTEGER NOT NULL,
-                rooms_id INTEGER NOT NULL,
+                roomname INTEGER NOT NULL,
                 content TEXT NOT NULL,
                 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS rooms (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                roomname TEXT NOT NULL UNIQUE,
+                members TEXT NOT NULL
             );
         """)
         
@@ -40,37 +49,112 @@ def get_messages(sender_id, receiver_id):
             SELECT * FROM messages
             WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
             ORDER BY timestamp
-        ''', (sender_id, receiver_id, receiver_id, sender_id))
+        ''', (sender_id, receiver_id, receiver_id, sender_id,))
         return cursor.fetchall()
 
-def get_user(username):
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
-        return cursor.fetchone()
-
-def create_user(username, password , photo):
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, password, photo) VALUES (?, ?, ?, ?)',
-                       (username, password, photo))
-        conn.commit()
-        return cursor.fetchone()
-
-def update_user(user_id, username_new, password_new, photo_new):
+def get_messages_all(sender_id):
     with get_db_connection() as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            UPDATE users
-            SET username = ?, password = ?, photo = ?
-            WHERE id = ?
-        ''', (username_new, password_new, photo_new, user_id))
-        conn.commit()
-        return cursor.rowcount > 0
+            SELECT * FROM messages
+            WHERE sender_id = ?
+        ''', (sender_id,))
+        return cursor.fetchall()
 
-def delete_user(user_id, username):
+def add_message(sender_id, roomname, content):
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM users WHERE id = ? AND username = ?', (user_id, username))
+        cursor.execute('''
+            INSERT INTO messages (sender_id, roomname, content)
+            VALUES (?, ?, ?)
+        ''', (sender_id, roomname, content,))
         conn.commit()
-        return cursor.rowcount > 0
+
+
+
+def get_rooms_where_user(user_id):
+    user_id = str(user_id)
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT COUNT(*) FROM rooms
+            WHERE members = ?
+               OR members LIKE ?
+               OR members LIKE ?
+               OR members LIKE ?
+        """, (
+            user_id,
+            user_id + ',%',
+            '%,' + user_id + ',%',
+            '%,' + user_id
+        ))
+        result = cursor.fetchone()
+        return result[0] if result else 0
+
+
+
+def if_exists_room(roomname):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM rooms WHERE roomname=?', (roomname,))
+        room = cursor.fetchone()
+        conn.commit()
+
+    if not room:
+        return False
+    else:
+        return True
+
+
+def get_messages_by_room(room: str):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id , sender_id, roomname, content, timestamp FROM messages WHERE roomname=? ORDER BY timestamp ASC", (room,))
+        rows = cursor.fetchall()
+
+        return [
+            {"id":r[0] , "sender_id": r[1], "roomname": r[2], "content": r[3], "timestamp": r[4]}
+            for r in rows
+        ]
+
+
+def add_room(roomname, user_id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM rooms WHERE roomname=?', (roomname,))
+        room = cursor.fetchone()
+        conn.commit()
+
+    if not room:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO rooms (roomname, members) VALUES (?, ?)', (roomname, f'{user_id}'))
+            conn.commit()
+    else:
+
+        return 'Room already exists'
+
+
+def add_member_to_room(roomname, user_id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT members FROM rooms WHERE roomname = ?', (roomname,))
+        members_new = list(cursor.fetchone())
+
+    if members_new:
+        members = members_new[0]
+
+        if str(user_id) in members.split(','):
+            return 'User already in room'
+
+        members_new[0] += f',{user_id}'
+
+        with get_db_connection()  as conn:
+            cursor = conn.cursor()
+            cursor.execute('UPDATE rooms SET members = ? WHERE roomname = ?', (members_new[0], roomname))
+            conn.commit()
+
+
+        return members_new[0]
+    else:
+        return 'Room does not exist'

@@ -1,168 +1,249 @@
 {% extends "base.html" %}
 
 {% block head %}
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
 {% endblock %}
 
 {% block title %}ChatSpace Чат{% endblock %}
 
 {% block content %}
-    <main class="chat-page">
-        <div class="server-list">
-            <div class="server-item" id="addRoomBtn">
-                <span>+</span>
-            </div>
+<main class="chat-page">
+    <div class="server-list">
+    <div class="server-item" id="addRoomBtn">
+        <span>+</span>
+    </div>
+
+    <div id="roomList"></div>
+</div>
+
+    <div id="roomModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>Присоединиться к комнате</h2>
+            <label for="roomInput"></label><input type="text" id="roomInput" placeholder="Введите название комнаты">
+            <button id="joinRoomBtn" class="btn btn-primary btn-full">Войти</button>
         </div>
+    </div>
 
-        <div id="roomModal" class="modal" style="display:none;">
-            <div class="modal-content">
-                <span class="close" id="closeModal">&times;</span>
-                <h2>Присоединиться к комнате</h2>
-                <input type="text" id="roomInput" placeholder="Введите название комнаты">
-                <button id="joinRoomBtn" class="btn btn-primary btn-full">Войти</button>
-            </div>
-        </div>
-
-        <div class="chat-main">
-            <div class="chat-messages" id="chatMessages">
-                <div class="message">
-                    <div class="message-avatar">A</div>
-                    <div class="message-content">
-                        <div class="message-header">
-                            <span class="username">Admin</span>
-                            <span class="timestamp">Сегодня</span>
-                        </div>
-                        <div class="message-text">Добро пожаловать в ChatSpace! 🎉</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="chat-input">
-                <div class="input-container">
-                    <input type="text" id="messageInput" placeholder="Сообщение">
-                    <button id="sendButton">📤</button>
-                    <button id="disconnectButton" style="margin-left:8px;">Отключиться</button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <script src="../static/index.js"></script>
-    <script>
-        let ws = null;
-        let connected = false;
-        let currentRoom = null;
-        let firstConnect = true;
-
-        document.getElementById('addRoomBtn').onclick = function() {
-            document.getElementById('roomModal').style.display = 'block';
-            document.getElementById('roomInput').focus();
-        };
-        document.getElementById('closeModal').onclick = function() {
-            document.getElementById('roomModal').style.display = 'none';
-        };
-        document.getElementById('roomModal').onclick = function(e) {
-            if (e.target === this) this.style.display = 'none';
-        };
-        document.getElementById('joinRoomBtn').onclick = function() {
-            const room = document.getElementById('roomInput').value.trim();
-            if (room) {
-                joinRoom(room);
-                document.getElementById('roomModal').style.display = 'none';
-            }
-        };
-        document.getElementById('roomInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') document.getElementById('joinRoomBtn').click();
-        });
-
-        function joinRoom(room) {
-            if (ws) {
-                ws.onclose = null;
-                ws.close();
-            }
-            connected = false;
-            currentRoom = room;
-            ws = new WebSocket(`ws://127.0.0.1:8000/ws/${room}`);
-            ws.onopen = () => {
-                connected = true;
-                if (!firstConnect) {
-                    appendSystem(`Подключено к комнате: ${room}`);
-                }
-                firstConnect = false;
-            };
-            ws.onmessage = (e) => appendMessage(e.data);
-            ws.onclose = () => {
-                if (connected) {
-                    appendSystem("Отключено от сервера");
-                }
-                connected = false;
-            };
-        }
-
-        document.getElementById('sendButton').onclick = sendMessage;
-        document.getElementById('messageInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
-
-        document.getElementById('disconnectButton').onclick = disconnectRoom;
-
-        function disconnectRoom() {
-            if (ws && connected) {
-                ws.onclose = null;
-                ws.close();
-                appendSystem("Вы отключились от комнаты");
-                connected = false;
-            }
-        }
-
-        function sendMessage() {
-            const input = document.getElementById('messageInput');
-            if (!currentRoom || !ws || ws.readyState !== WebSocket.OPEN || !connected) {
-                appendSystem("Вы не подключены к комнате!");
-                return;
-            }
-            if (input.value.trim()) {
-                ws.send(input.value);
-                input.value = '';
-            }
-        }
-
-        function appendMessage(text) {
-            const chat = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message';
-            msgDiv.innerHTML = `
-                <div class="message-avatar">U</div>
+    <div class="chat-main">
+        <div class="chat-messages" id="chatMessages">
+            <div class="message">
+                <div class="message-avatar">A</div>
                 <div class="message-content">
                     <div class="message-header">
-                        <span class="username">User</span>
-                        <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                        <span class="username">Admin</span>
+                        <span class="timestamp">Сегодня</span>
                     </div>
-                    <div class="message-text">${text}</div>
+                    <div class="message-text">Добро пожаловать в ChatSpace! 🎉</div>
                 </div>
-            `;
-            chat.appendChild(msgDiv);
-            chat.scrollTop = chat.scrollHeight;
-        }
+            </div>
+        </div>
 
-        function appendSystem(text) {
-            const chat = document.getElementById('chatMessages');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = 'message';
-            msgDiv.innerHTML = `
-                <div class="message-avatar">S</div>
-                <div class="message-content">
-                    <div class="message-header">
-                        <span class="username" style="color:gray;">System</span>
-                        <span class="timestamp">${new Date().toLocaleTimeString()}</span>
-                    </div>
-                    <div class="message-text" style="color:gray;">${text}</div>
-                </div>
-            `;
-            chat.appendChild(msgDiv);
-            chat.scrollTop = chat.scrollHeight;
+        <div class="chat-input">
+            <div class="input-container">
+                <label for="messageInput"></label><input type="text" id="messageInput" placeholder="Сообщение">
+                <button id="sendButton">📤</button>
+                <button id="disconnectButton" style="margin-left:8px;">Отключиться</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+let ws = null;
+let connected = false;
+let currentRoom = null;
+
+// ---------- Проверка авторизации ----------
+async function checkAuth() {
+    try {
+        const res = await fetch("/get-token");
+        const data = await res.json();
+        if (!data.token) {
+            alert("Вы не авторизованы. Пожалуйста, войдите.");
         }
-    </script>
+    } catch (err) {
+        alert("Ошибка авторизации");
+    }
+}
+checkAuth();
+
+// ---------- Сообщения ----------
+function appendSystem(text) {
+    const chat = document.getElementById('chatMessages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message';
+    msgDiv.innerHTML = `
+        <div class="message-avatar">S</div>
+        <div class="message-content">
+            <div class="message-header">
+                <span class="username" style="color:gray;">System</span>
+                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="message-text" style="color:gray;">${text}</div>
+        </div>
+    `;
+    chat.appendChild(msgDiv);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+function appendMessage(msg) {
+    const chat = document.getElementById('chatMessages');
+    const msgDiv = document.createElement('div');
+    msgDiv.className = 'message';
+
+    msgDiv.innerHTML = `
+        <div class="message-avatar">
+            <img src="${msg.photo}" alt="avatar" class="user-avatar">
+        </div>
+        <div class="message-content">
+            <div class="message-header">
+                <span class="username">${msg.username}</span>
+                <span class="timestamp">${msg.timestamp}</span>
+            </div>
+            <div class="message-text">${msg.content}</div>
+        </div>
+    `;
+    chat.appendChild(msgDiv);
+    chat.scrollTop = chat.scrollHeight;
+}
+
+// ---------- Загрузка списка комнат ----------
+async function loadRooms() {
+    try {
+        const res = await fetch("/my-rooms/");
+        const data = await res.json();
+        const list = document.getElementById("roomList");
+        list.innerHTML = "";
+
+        data.rooms.forEach(room => {
+            const div = document.createElement("div");
+            div.className = "server-item room-item";
+
+            // Отображаем только первую букву комнаты в кружке
+            const circle = document.createElement("span");
+            circle.textContent = room.charAt(0).toUpperCase();
+            circle.title = room; // полный текст при наведении
+            circle.style.cursor = "pointer";
+            circle.onclick = () => joinRoom(room);
+
+            // Крестик для удаления комнаты
+            const closeBtn = document.createElement("span");
+            closeBtn.textContent = "×";
+            closeBtn.style.color = "red";
+            closeBtn.style.cursor = "pointer";
+            closeBtn.onclick = async (e) => {
+                e.stopPropagation();
+                await deleteRoom(room);
+                loadRooms();
+            };
+
+            div.appendChild(circle);
+            div.appendChild(closeBtn);
+            list.appendChild(div);
+        });
+    } catch (err) {
+        console.error("Ошибка загрузки комнат", err);
+    }
+}
+
+// ---------- Пример функции удаления комнаты ----------
+async function deleteRoom(room) {
+    try {
+        const res = await fetch(`/delete-room/${room}`, { method: 'DELETE' });
+        const data = await res.json();
+        appendSystem(data.detail);
+        loadRooms(); // обновляем список комнат
+    } catch (err) {
+        console.error("Ошибка при удалении комнаты", err);
+        appendSystem("Не удалось удалить комнату");
+    }
+}
+
+window.addEventListener("DOMContentLoaded", loadRooms);
+
+// ---------- Модальное окно ----------
+document.getElementById('addRoomBtn').onclick = function() {
+    document.getElementById('roomModal').style.display = 'block';
+    document.getElementById('roomInput').focus();
+};
+document.getElementById('closeModal').onclick = function() {
+    document.getElementById('roomModal').style.display = 'none';
+};
+document.getElementById('roomModal').onclick = function(e) {
+    if (e.target === this) this.style.display = 'none';
+};
+document.getElementById('roomInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('joinRoomBtn').click();
+});
+
+// ---------- Присоединение к комнате ----------
+document.getElementById('joinRoomBtn').onclick = function() {
+    const room = document.getElementById('roomInput').value.trim();
+    if (room) {
+        joinRoom(room);
+        document.getElementById('roomModal').style.display = 'none';
+        loadRooms(); // после входа обновим список
+    }
+};
+
+function joinRoom(room) {
+    const chat = document.getElementById('chatMessages');
+    chat.innerHTML = '';
+
+    if (ws) {
+        ws.onclose = null;
+        ws.close();
+    }
+    currentRoom = room;
+    if (!currentRoom) return;
+
+    ws = new WebSocket(`ws://127.0.0.1:8000/ws/${room}`);
+
+    ws.onopen = () => {
+        connected = true;
+        appendSystem(`Подключено к комнате: ${room}`);
+    };
+
+    ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        appendMessage(msg);
+    };
+
+    ws.onclose = () => {
+        if (connected) appendSystem("Отключено от сервера");
+        connected = false;
+    };
+}
+
+// ---------- Отправка сообщений ----------
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    if (!currentRoom || !ws || ws.readyState !== WebSocket.OPEN || !connected) {
+        appendSystem("Вы не подключены к комнате!");
+        return;
+    }
+    if (input.value.trim()) {
+        ws.send(input.value);
+        input.value = '';
+    }
+}
+document.getElementById('sendButton').onclick = sendMessage;
+document.getElementById('messageInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') sendMessage();
+});
+
+// ---------- Отключение ----------
+document.getElementById('disconnectButton').onclick = function () {
+    if (ws && connected) {
+        ws.onclose = null;
+        ws.close();
+        appendSystem("Вы отключились от комнаты");
+        connected = false;
+    }
+    loadRooms();
+};
+</script>
 {% endblock %}

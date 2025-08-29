@@ -1,0 +1,139 @@
+.profile-page {
+    padding-top: 120px;
+    padding-bottom: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    min-height: 100vh;
+    background: linear-gradient(-45deg, #0f0f23, #1a1a2e, #16213e, #0f3460);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    color: #fff;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-avatar-profile-img {
+    width: 250px ;
+    height: 250px ;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #8b5cf6;
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+    transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.user-avatar-profile-img:hover {
+    transform: scale(1.05);
+    border-color: #a78bfa;
+}
+
+.user-info h2 {
+    font-size: 3rem;
+    margin-bottom: 13px;
+    text-align: center;
+    background: linear-gradient(135deg, #8a2be2, #9370db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.btn-primary {
+    padding: 10px 24px;
+    border-radius: 25px;
+    background: linear-gradient(135deg, #8a2be2, #9370db);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(138, 43, 226, 0.4);
+}
+
+.profile-details, .profile-stats {
+    width: 100%;
+    max-width: 700px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+
+.profile-details h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+}
+
+.profile-details p {
+    font-size: 1.1rem;
+    color: #d0d0d0;
+    line-height: 1.6;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.profile-stats .stat-item {
+    text-align: center;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 15px;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    padding: 20px;
+    min-width: 100px;
+    transition: all 0.3s ease;
+}
+
+.profile-stats .stat-item:hover {
+    transform: scale(1.05);
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.profile-stats .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #8a2be2;
+    margin-bottom: 5px;
+}
+
+.profile-stats .stat-label {
+    font-size: 1rem;
+    color: #d0d0d0;
+}
+
+/* Адаптив */
+@media (max-width: 768px) {
+    .user-avatar-profile-img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .user-info h2 {
+        font-size: 1.6rem;
+    }
+}

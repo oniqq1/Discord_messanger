@@ -15,10 +15,18 @@
                 <h2>Создать аккаунт</h2>
                 <p>Присоединяйтесь к нашему сообществу!</p>
                 
-                <form id="registerForm">
+                <form method="post" action="/register/">
+
+                    {% if error %}
+                    <div class="error-message">
+                        <span>{{ error }}</span>
+                        <button type="button" class="close-btn" onclick="this.parentElement.style.display='none';">&times;</button>
+                    </div>
+                    {% endif %}
+
                     <div class="form-group">
                         <label for="username">Имя пользователя</label>
-                        <input type="text" id="username" name="username" required>
+                        <input type="text" id="username" name="username" required value="{{ username | default('') }}">
                     </div>
                     
                     <div class="form-group">
@@ -33,6 +41,7 @@
                     
                     <button type="submit" class="btn btn-primary btn-full">Продолжить</button>
                 </form>
+
                 
                 <p class="auth-switch">
                     Уже есть аккаунт? <a href="{{ url_for('login_user') }}">Войти</a>
@@ -42,4 +51,21 @@
     </main>
 
     <script src="../static/index.js"></script>
+    <style>
+    .error-message {
+        background-color: #ffe6e6;
+        color: #a00;
+        border: 1px solid #a00;
+        padding: 10px 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        font-weight: bold;
+        animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    </style>
 {% endblock %}
