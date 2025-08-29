@@ -11,16 +11,18 @@
 {% block content %}
 <main class="chat-page">
     <div class="server-list">
-        <div class="server-item" id="addRoomBtn">
-            <span>+</span>
-        </div>
+    <div class="server-item" id="addRoomBtn">
+        <span>+</span>
     </div>
+
+    <div id="roomList"></div>
+</div>
 
     <div id="roomModal" class="modal" style="display:none;">
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
             <h2>Присоединиться к комнате</h2>
-            <input type="text" id="roomInput" placeholder="Введите название комнаты">
+            <label for="roomInput"></label><input type="text" id="roomInput" placeholder="Введите название комнаты">
             <button id="joinRoomBtn" class="btn btn-primary btn-full">Войти</button>
         </div>
     </div>
@@ -41,7 +43,7 @@
 
         <div class="chat-input">
             <div class="input-container">
-                <input type="text" id="messageInput" placeholder="Сообщение">
+                <label for="messageInput"></label><input type="text" id="messageInput" placeholder="Сообщение">
                 <button id="sendButton">📤</button>
                 <button id="disconnectButton" style="margin-left:8px;">Отключиться</button>
             </div>
@@ -56,17 +58,15 @@ let currentRoom = null;
 
 // ---------- Проверка авторизации ----------
 async function checkAuth() {
-  let token = null;
-  try {
-    const res = await fetch("/get-token");
-    const data = await res.json();
-    token = data.token;
-    if (!token) {
-      alert("Вы не авторизованы. Пожалуйста, войдите.");
+    try {
+        const res = await fetch("/get-token");
+        const data = await res.json();
+        if (!data.token) {
+            alert("Вы не авторизованы. Пожалуйста, войдите.");
+        }
+    } catch (err) {
+        alert("Ошибка авторизации");
     }
-  } catch (err) {
-    alert("Ошибка авторизации");
-  }
 }
 checkAuth();
 
@@ -110,6 +110,60 @@ function appendMessage(msg) {
     chat.scrollTop = chat.scrollHeight;
 }
 
+// ---------- Загрузка списка комнат ----------
+async function loadRooms() {
+    try {
+        const res = await fetch("/my-rooms/");
+        const data = await res.json();
+        const list = document.getElementById("roomList");
+        list.innerHTML = "";
+
+        data.rooms.forEach(room => {
+            const div = document.createElement("div");
+            div.className = "server-item room-item";
+
+            // Отображаем только первую букву комнаты в кружке
+            const circle = document.createElement("span");
+            circle.textContent = room.charAt(0).toUpperCase();
+            circle.title = room; // полный текст при наведении
+            circle.style.cursor = "pointer";
+            circle.onclick = () => joinRoom(room);
+
+            // Крестик для удаления комнаты
+            const closeBtn = document.createElement("span");
+            closeBtn.textContent = "×";
+            closeBtn.style.color = "red";
+            closeBtn.style.cursor = "pointer";
+            closeBtn.onclick = async (e) => {
+                e.stopPropagation();
+                await deleteRoom(room);
+                loadRooms();
+            };
+
+            div.appendChild(circle);
+            div.appendChild(closeBtn);
+            list.appendChild(div);
+        });
+    } catch (err) {
+        console.error("Ошибка загрузки комнат", err);
+    }
+}
+
+// ---------- Пример функции удаления комнаты ----------
+async function deleteRoom(room) {
+    try {
+        const res = await fetch(`/delete-room/${room}`, { method: 'DELETE' });
+        const data = await res.json();
+        appendSystem(data.detail);
+        loadRooms(); // обновляем список комнат
+    } catch (err) {
+        console.error("Ошибка при удалении комнаты", err);
+        appendSystem("Не удалось удалить комнату");
+    }
+}
+
+window.addEventListener("DOMContentLoaded", loadRooms);
+
 // ---------- Модальное окно ----------
 document.getElementById('addRoomBtn').onclick = function() {
     document.getElementById('roomModal').style.display = 'block';
@@ -131,6 +185,7 @@ document.getElementById('joinRoomBtn').onclick = function() {
     if (room) {
         joinRoom(room);
         document.getElementById('roomModal').style.display = 'none';
+        loadRooms(); // после входа обновим список
     }
 };
 
@@ -185,6 +240,7 @@ document.getElementById('disconnectButton').onclick = function () {
         appendSystem("Вы отключились от комнаты");
         connected = false;
     }
+    loadRooms();
 };
 </script>
 {% endblock %}
