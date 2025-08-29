@@ -15,7 +15,7 @@ async def register_user(request: Request):
 
 
 @router.post("/register/")
-async def register_page(username: str = Form(...), password: str = Form(...), confirmPassword: str = Form(...)):
+async def register_page(request: Request,username: str = Form(...), password: str = Form(...), confirmPassword: str = Form(...)):
     from app.auth import hash_password
     if not username or not password or not confirmPassword:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing data")
@@ -31,7 +31,7 @@ async def register_page(username: str = Form(...), password: str = Form(...), co
     if error:
         return templates.TemplateResponse(
             "register.html",
-            {"error": error, "username": username}
+            {"error": error, "username": username, "request": request,}
         )
 
     hashed = hash_password(password)
@@ -49,30 +49,43 @@ async def login_user(request: Request):
 
 
 @router.post("/login/")
-async def login_page(username: str = Form(...), password: str = Form(...)):
+async def login_page(request: Request, username: str = Form(...), password: str = Form(...)):
     from app.auth import verify_password, create_access_token
-    try:
-        user =dict(get_user(username=username))
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
-    if not user or not verify_password(password, user.get("password")):
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect credentials")
+    error = None
+
+    # Проверка на пустые поля
+    if not username or not password:
+        error = "Заполните все поля."
+    else:
+        try:
+            user = dict(get_user(username=username))
+        except Exception:
+            user = None
+
+        if not user:
+            error = "Пользователь с таким именем не найден."
+        elif not verify_password(password, user.get("password")):
+            error = "Неверный пароль."
+
+    if error:
+        return templates.TemplateResponse(
+            "login.html",
+            {"error": error, "username": username, "request": request}
+        )
 
     access_token = create_access_token(data={"sub": username})
-
     response = RedirectResponse(url='/', status_code=303)
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="lax",   # если фронт/бэк на одном origin. Иначе "none" + secure=True
-        secure=False,     # в проде True (HTTPS)
-        max_age=60*60*24*7,
+        samesite="lax",
+        secure=False,
+        max_age=60 * 60 * 24 * 7,
         path="/",
     )
     return response
-
 
 
 @router.get('/profile/')
@@ -104,10 +117,9 @@ async def profile_edit(request: Request):
 async def profile_edit_page(
     request: Request,
     username_new: str = Form(...),
-    avatar: UploadFile = File(None)  # теперь фото необязательно
+    avatar: UploadFile = File(None)
 ):
     from app.auth import get_current_user , create_access_token
-    # --- Проверка авторизации ---
     try:
         current_user = get_current_user(request)
         if not current_user:
@@ -115,7 +127,6 @@ async def profile_edit_page(
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
-    # --- Проверка уникальности username ---
     try:
         existing_user = dict(get_user(username=username_new))
         if existing_user and existing_user.get("id") != current_user.get("id"):
@@ -126,7 +137,7 @@ async def profile_edit_page(
     except Exception as e:
         pass
 
-    photo_path = current_user.get("photo")  # текущее фото (например /avatars/xxxx.png)
+    photo_path = current_user.get("photo")
 
 
     if avatar.filename:
@@ -138,7 +149,6 @@ async def profile_edit_page(
                 detail="Invalid file type. Only JPEG, PNG are allowed."
             )
 
-        # Удаляем старое фото, если оно есть и не дефолтное
         if photo_path and not photo_path.endswith("default.png"):
             old_path = os.path.join("app", "front", photo_path.lstrip("/"))
             if os.path.exists(old_path):
@@ -147,7 +157,6 @@ async def profile_edit_page(
                 except Exception:
                     pass
 
-        # Сохраняем новое
         file_ext = os.path.splitext(avatar.filename)[1]
         filename = f"{uuid4().hex}{file_ext}"
         file_path = os.path.join('app', 'front', "avatars", filename)
@@ -159,22 +168,20 @@ async def profile_edit_page(
 
         photo_path = f"/avatars/{filename}"
 
-    # --- Обновляем юзера ---
     update_user(
         user_id=current_user.get("id"),
         username_new=username_new,
         photo_new=photo_path
     )
 
-    # --- Новый access token ---
     access_token = create_access_token(data={"sub": username_new})
     response = RedirectResponse(url='/', status_code=303)
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="lax",   # если фронт/бэк на одном origin. Иначе "none" + secure=True
-        secure=False,     # в проде True (HTTPS)
+        samesite="lax",
+        secure=False,
         max_age=60*60*24*7,
         path="/",
     )

@@ -22,7 +22,7 @@
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
             <h2>Присоединиться к комнате</h2>
-            <input type="text" id="roomInput" placeholder="Введите название комнаты">
+            <label for="roomInput"></label><input type="text" id="roomInput" placeholder="Введите название комнаты">
             <button id="joinRoomBtn" class="btn btn-primary btn-full">Войти</button>
         </div>
     </div>
@@ -43,7 +43,7 @@
 
         <div class="chat-input">
             <div class="input-container">
-                <input type="text" id="messageInput" placeholder="Сообщение">
+                <label for="messageInput"></label><input type="text" id="messageInput" placeholder="Сообщение">
                 <button id="sendButton">📤</button>
                 <button id="disconnectButton" style="margin-left:8px;">Отключиться</button>
             </div>
@@ -121,17 +121,17 @@ async function loadRooms() {
             const div = document.createElement("div");
             div.className = "server-item room-item";
 
-            // Название с обрезкой
-            const roomName = document.createElement("span");
-            roomName.textContent = room.length > 4 ? room.slice(0, 4) + "..." : room;
-            roomName.style.cursor = "pointer";
-            roomName.onclick = () => joinRoom(room);
+            // Отображаем только первую букву комнаты в кружке
+            const circle = document.createElement("span");
+            circle.textContent = room.charAt(0).toUpperCase();
+            circle.title = room; // полный текст при наведении
+            circle.style.cursor = "pointer";
+            circle.onclick = () => joinRoom(room);
 
-            // Крестик для удаления
+            // Крестик для удаления комнаты
             const closeBtn = document.createElement("span");
             closeBtn.textContent = "×";
             closeBtn.style.color = "red";
-            closeBtn.style.marginLeft = "8px";
             closeBtn.style.cursor = "pointer";
             closeBtn.onclick = async (e) => {
                 e.stopPropagation();
@@ -139,7 +139,7 @@ async function loadRooms() {
                 loadRooms();
             };
 
-            div.appendChild(roomName);
+            div.appendChild(circle);
             div.appendChild(closeBtn);
             list.appendChild(div);
         });

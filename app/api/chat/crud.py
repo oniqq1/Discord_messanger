@@ -57,9 +57,12 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
             for client in list(connections.get(room, [])):
                 await client.send_text(f"{data}")
     except WebSocketDisconnect:
-        connections[room].remove(websocket)
-        if not connections[room]:
-            del connections[room]
+        try:
+            connections[room].remove(websocket)
+            if not connections[room]:
+                del connections[room]
+        except KeyError:
+            pass
 
 @router.get("/my-rooms/")
 async def my_rooms(current_user: dict = Depends(get_current_user)):
