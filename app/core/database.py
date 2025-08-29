@@ -7,6 +7,7 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def create_tables():
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -39,9 +40,9 @@ def create_tables():
                 members TEXT NOT NULL
             );
         """)
-        
         conn.commit()
-        
+
+
 def get_messages(sender_id, receiver_id):
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -52,6 +53,7 @@ def get_messages(sender_id, receiver_id):
         ''', (sender_id, receiver_id, receiver_id, sender_id,))
         return cursor.fetchall()
 
+
 def get_messages_all(sender_id):
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -61,6 +63,7 @@ def get_messages_all(sender_id):
         ''', (sender_id,))
         return cursor.fetchall()
 
+
 def add_message(sender_id, roomname, content):
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -69,7 +72,6 @@ def add_message(sender_id, roomname, content):
             VALUES (?, ?, ?)
         ''', (sender_id, roomname, content,))
         conn.commit()
-
 
 
 def get_rooms_where_user(user_id):
@@ -90,7 +92,6 @@ def get_rooms_where_user(user_id):
         ))
         result = cursor.fetchone()
         return result[0] if result else 0
-
 
 
 def if_exists_room(roomname):
@@ -131,8 +132,7 @@ def add_room(roomname, user_id):
             cursor.execute('INSERT INTO rooms (roomname, members) VALUES (?, ?)', (roomname, f'{user_id}'))
             conn.commit()
     else:
-
-        return 'Room already exists'
+        return 'Кімната з такою назвою вже існує'
 
 
 def add_member_to_room(roomname, user_id):
@@ -145,7 +145,7 @@ def add_member_to_room(roomname, user_id):
         members = members_new[0]
 
         if str(user_id) in members.split(','):
-            return 'User already in room'
+            return 'Користувач вже є в кімнаті'
 
         members_new[0] += f',{user_id}'
 
@@ -154,7 +154,6 @@ def add_member_to_room(roomname, user_id):
             cursor.execute('UPDATE rooms SET members = ? WHERE roomname = ?', (members_new[0], roomname))
             conn.commit()
 
-
         return members_new[0]
     else:
-        return 'Room does not exist'
+        return 'Кімната не знайдена'

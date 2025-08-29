@@ -63,7 +63,6 @@
   animation: fadeInUp 1s ease-out 0.5s both;
 }
 
-/* Добавил стили для текстового контента */
 .about-content {
   padding: 80px 0;
   position: relative;
@@ -229,7 +228,6 @@
   transform: translateY(-2px);
 }
 
-/* Анимации появления */
 @keyframes fadeInUp {
   0% {
     opacity: 0;
@@ -241,7 +239,6 @@
   }
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .page-title {
     font-size: 2.5rem;

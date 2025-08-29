@@ -1,13 +1,18 @@
+import datetime
+
 from fastapi import WebSocket, status, Request, WebSocketDisconnect, APIRouter, Depends, HTTPException
-from app.core.config import templates
-from app.auth import get_current_user
 from jose import jwt, JWTError
+
 from app.core.config import settings
 from app.api.users.crud import get_user, get_user_by_id
 from app.core.database import add_room , add_member_to_room , add_message , if_exists_room , get_messages_by_room
-import datetime
+from app.core.config import templates, logger
+from app.auth import get_current_user
+
+
 router = APIRouter()
 connections = {}
+
 
 @router.get("/")
 async def index(request: Request ):
@@ -21,6 +26,7 @@ async def index(request: Request ):
         pass
     return templates.TemplateResponse("index.html", {"request": request , "is_authenticated": False})
 
+
 @router.get("/about/")
 async def about(request: Request):
     token = request.cookies.get("access_token")
@@ -29,15 +35,16 @@ async def about(request: Request):
         return templates.TemplateResponse("about.html", {"request": request , "is_authenticated": token , 'user': user})
     return templates.TemplateResponse("about.html", {"request": request})
 
+
 @router.get("/chat/")
 async def get_chat(request: Request, current_user: dict = Depends(get_current_user)):
     token = request.cookies.get("access_token")
     if not token:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
-
     current_user["photo"].replace("\\", "//")
     return templates.TemplateResponse("chat.html", {"request": request, "user": current_user , "is_authenticated": token})
+
 
 @router.websocket("/ws/{room}")
 async def websocket_endpoint(websocket: WebSocket, room: str):
@@ -54,7 +61,6 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
     except JWTError:
         await websocket.close(code=1008)
         return
-
 
     await websocket.accept()
     connections.setdefault(room, []).append(websocket)
@@ -101,6 +107,7 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
         except KeyError:
             pass
 
+
 @router.get("/my-rooms/")
 async def my_rooms(current_user: dict = Depends(get_current_user)):
     from app.core.database import get_db_connection
@@ -117,7 +124,9 @@ async def my_rooms(current_user: dict = Depends(get_current_user)):
         if str(user_id) in members:
             user_rooms.append(row["roomname"])
 
+    logger.info("Користувач '%s' отримав свої кімнати", current_user["username"])
     return {"rooms": user_rooms}
+
 
 @router.delete("/delete-room/{roomname}")
 async def delete_room(roomname: str, current_user: dict = Depends(get_current_user)):
@@ -129,11 +138,11 @@ async def delete_room(roomname: str, current_user: dict = Depends(get_current_us
         cursor.execute("SELECT members FROM rooms WHERE roomname = ?", (roomname,))
         row = cursor.fetchone()
         if not row:
-            raise HTTPException(status_code=404, detail="Комната не найдена")
+            raise HTTPException(status_code=404, detail="Комната не знайдена")
 
         members = row["members"].split(",")
         if str(user_id) not in members:
-            raise HTTPException(status_code=403, detail="Вы не участник этой комнаты")
+            raise HTTPException(status_code=403, detail="Ви не учасник цієї кімнати")
 
         cursor.execute("DELETE FROM rooms WHERE roomname = ?", (roomname,))
         cursor.execute("DELETE FROM messages WHERE roomname = ?", (roomname,))
@@ -144,4 +153,5 @@ async def delete_room(roomname: str, current_user: dict = Depends(get_current_us
             await ws.close(code=1000)
         del connections[roomname]
 
-    return {"detail": "Комната удалена"}
+    logger.info("Комната '%s' видалена користувачем '%s'", roomname, current_user["username"])
+    return {"detail": "Комната видалена"}

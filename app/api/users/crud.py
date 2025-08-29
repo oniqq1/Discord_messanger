@@ -14,6 +14,7 @@ def get_user_by_id(id):
         cursor.execute('SELECT * FROM users WHERE id = ?', (id,))
         return cursor.fetchone()
 
+
 def create_user(username, password , photo):
     with get_db_connection() as conn:
         cursor = conn.cursor()
@@ -21,6 +22,7 @@ def create_user(username, password , photo):
                        (username, password, photo))
         conn.commit()
         return cursor.fetchone()
+
 
 def update_user(user_id, username_new,  photo_new):
     with get_db_connection() as conn:
@@ -32,6 +34,7 @@ def update_user(user_id, username_new,  photo_new):
         ''', (username_new, photo_new, user_id))
         conn.commit()
         return cursor.rowcount > 0
+
 
 def delete_user(user_id, username):
     with get_db_connection() as conn:

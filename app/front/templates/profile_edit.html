@@ -1,27 +1,32 @@
 {% extends "base.html" %}
 
-{% block title %}Редактировать профиль{% endblock %}
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+{% endblock %}
+
+{% block title %}Редагувати профіль{% endblock %}
 
 {% block content %}
 <main class="profile-edit-page">
-  <h2>Редактировать профиль</h2>
+  <h2>Редагувати профіль</h2>
 
   <form action="/profile/edit/" method="post" enctype="multipart/form-data" class="edit-form">
     <div class="form-group">
-      <label for="username_new">Новое имя пользователя:</label>
+      <label for="username_new">Нове ім'я користувача:</label>
       <input type="text" id="username_new" name="username_new" value="{{ user.username }}" required>
     </div>
 
     <div class="form-group">
-      <label for="avatar">Новая аватарка (необязательно):</label>
+      <label for="avatar">Нова аватарка (необов'язково):</label>
       <input type="file" id="avatar" name="avatar" accept="image/jpeg,image/png">
     </div>
 
     <div class="form-group">
-      <img src="{{ user.photo }}" alt="Текущая аватарка" class="avatar-preview">
+      <img src="{{ user.photo }}" alt="Поточна аватарка" class="avatar-preview">
     </div>
 
-    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
   </form>
 </main>
 

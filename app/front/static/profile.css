@@ -126,7 +126,6 @@
     color: #d0d0d0;
 }
 
-/* Адаптив */
 @media (max-width: 768px) {
     .user-avatar-profile-img {
         width: 100px;

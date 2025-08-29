@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='profile.css') }}">
 {% endblock %}
 
-{% block title %}ChatSpace — Профиль{% endblock %}
+{% block title %}ChatSpace — Профіль{% endblock %}
 
 {% block content %}
 <main class="profile-page">
@@ -14,23 +14,23 @@
         <img src="{{ user.photo }}" alt="avatar" class="user-avatar-profile-img">
         <div class="user-info">
             <h2>{{ user.username }}</h2>
-            <a href="{{ url_for('profile_edit') }}" class="btn btn-primary">Изменить профиль</a>
+            <a href="{{ url_for('profile_edit') }}" class="btn btn-primary">Змінити профіль</a>
         </div>
     </section>
 
     <section class="profile-details">
-        <h3>Это ваш профиль</h3>
-        <p>В будущем добавиться функция статусов и здесь вы будете их менять =) </p>
+        <h3>Це ваш профіль</h3>
+        <p>У майбутньому додатися функція статусів і тут ви їх міняти =) </p>
     </section>
 
     <section class="profile-stats">
         <div class="stat-item">
             <div class="stat-number">{{ messages_count }}</div>
-            <div class="stat-label">Сообщений</div>
+            <div class="stat-label">Повідомлень</div>
         </div>
         <div class="stat-item">
             <div class="stat-number">{{ rooms_count }}</div>
-            <div class="stat-label">Комнат</div>
+            <div class="stat-label">Кімнат</div>
         </div>
     </section>
 </main>
