@@ -89,20 +89,21 @@ function appendSystem(text) {
     chat.scrollTop = chat.scrollHeight;
 }
 
-function appendMessage(text) {
+function appendMessage(msg) {
     const chat = document.getElementById('chatMessages');
     const msgDiv = document.createElement('div');
     msgDiv.className = 'message';
+
     msgDiv.innerHTML = `
         <div class="message-avatar">
-            <img src="{{ user.photo }}" alt="avatar" class="user-avatar">
+            <img src="${msg.photo}" alt="avatar" class="user-avatar">
         </div>
         <div class="message-content">
             <div class="message-header">
-                <span class="username">{{ user.username }}</span>
-                <span class="timestamp">${new Date().toLocaleTimeString()}</span>
+                <span class="username">${msg.username}</span>
+                <span class="timestamp">${msg.timestamp}</span>
             </div>
-            <div class="message-text">${text}</div>
+            <div class="message-text">${msg.content}</div>
         </div>
     `;
     chat.appendChild(msgDiv);
@@ -149,7 +150,8 @@ function joinRoom(room) {
     };
 
     ws.onmessage = (event) => {
-        appendMessage(event.data);
+        const msg = JSON.parse(event.data);
+        appendMessage(msg);
     };
 
     ws.onclose = () => {

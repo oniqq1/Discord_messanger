@@ -4,7 +4,7 @@ import os
 from uuid import uuid4
 from app.core.config import templates
 from app.api.users.crud import get_user, create_user , update_user
-
+from app.core.database import get_messages_all , get_rooms_where_user
 
 router = APIRouter(tags=["users"])
 
@@ -38,7 +38,7 @@ async def register_page(username: str = Form(...), password: str = Form(...), co
     create_user(
         username=username,
         password=hashed,
-        photo="https://upload.wikimedia.org/wikipedia/commons/2/20/Photoshop_CC_icon.png"
+        photo="https://i.pinimg.com/736x/7d/ad/d4/7dadd43f4b9faa58bf53ab29d734aa8b.jpg"
     )
     return RedirectResponse(url="/login/", status_code=303)
 
@@ -79,13 +79,17 @@ async def login_page(username: str = Form(...), password: str = Form(...)):
 async def profile(request: Request):
     from app.auth import get_current_user
     try:
-        current_user = get_current_user(request)
+        current_user = dict(get_current_user(request))
         if not current_user:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
-    return templates.TemplateResponse("profile.html", {"request": request, "user": current_user})
+    id = current_user.get('id')
+
+    print(id)
+
+    return templates.TemplateResponse("profile.html", {"request": request, "user": current_user , "messages_count": len(get_messages_all(id)) , "rooms_count": get_rooms_where_user(id) , "is_authenticated":current_user, "messages":get_messages_all(id)})
 
 
 @router.get('/profile/edit/')
@@ -98,7 +102,7 @@ async def profile_edit(request: Request):
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
 
-    return templates.TemplateResponse("profile_edit.html", {"request": request, "user": current_user})
+    return templates.TemplateResponse("profile_edit.html", {"request": request, "user": current_user , "is_authenticated": True })
 
 @router.post('/profile/edit/')
 async def profile_edit_page(

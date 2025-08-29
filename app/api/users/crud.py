@@ -7,6 +7,13 @@ def get_user(username):
         cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
         return cursor.fetchone()
 
+
+def get_user_by_id(id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE id = ?', (id,))
+        return cursor.fetchone()
+
 def create_user(username, password , photo):
     with get_db_connection() as conn:
         cursor = conn.cursor()

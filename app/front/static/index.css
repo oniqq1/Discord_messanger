@@ -786,8 +786,8 @@ body::after {
 }
 
 .user-avatar {
-  width: 30px;
-  height: 30px;
+  width: 40px;
+  height: 40px;
   background: #8b5cf6;
   border-radius: 50%;
   display: flex;
@@ -798,6 +798,8 @@ body::after {
   font-size: 12px;
   position: relative;
 }
+
+
 
 .user-avatar.online::after {
   content: "";

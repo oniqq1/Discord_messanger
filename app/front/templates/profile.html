@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', path='profile.css') }}">
+{% endblock %}
+
+{% block title %}ChatSpace — Профиль{% endblock %}
+
+{% block content %}
+<main class="profile-page">
+    <section class="profile-header">
+        <img src="{{ user.photo }}" alt="avatar" class="user-avatar-profile-img">
+        <div class="user-info">
+            <h2>{{ user.username }}</h2>
+            <a href="{{ url_for('profile_edit') }}" class="btn btn-primary">Изменить профиль</a>
+        </div>
+    </section>
+
+    <section class="profile-details">
+        <h3>Это ваш профиль</h3>
+        <p>В будущем добавиться функция статусов и здесь вы будете их менять =) </p>
+    </section>
+
+    <section class="profile-stats">
+        <div class="stat-item">
+            <div class="stat-number">{{ messages_count }}</div>
+            <div class="stat-label">Сообщений</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">{{ rooms_count }}</div>
+            <div class="stat-label">Комнат</div>
+        </div>
+    </section>
+</main>
+{% endblock %}

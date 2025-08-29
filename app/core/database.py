@@ -49,10 +49,17 @@ def get_messages(sender_id, receiver_id):
             SELECT * FROM messages
             WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)
             ORDER BY timestamp
-        ''', (sender_id, receiver_id, receiver_id, sender_id))
+        ''', (sender_id, receiver_id, receiver_id, sender_id,))
         return cursor.fetchall()
 
-
+def get_messages_all(sender_id):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT * FROM messages
+            WHERE sender_id = ?
+        ''', (sender_id,))
+        return cursor.fetchall()
 
 def add_message(sender_id, roomname, content):
     with get_db_connection() as conn:
@@ -60,10 +67,55 @@ def add_message(sender_id, roomname, content):
         cursor.execute('''
             INSERT INTO messages (sender_id, roomname, content)
             VALUES (?, ?, ?)
-        ''', (sender_id, roomname, content))
+        ''', (sender_id, roomname, content,))
         conn.commit()
 
 
+
+def get_rooms_where_user(user_id):
+    user_id = str(user_id)
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT COUNT(*) FROM rooms
+            WHERE members = ?
+               OR members LIKE ?
+               OR members LIKE ?
+               OR members LIKE ?
+        """, (
+            user_id,
+            user_id + ',%',
+            '%,' + user_id + ',%',
+            '%,' + user_id
+        ))
+        result = cursor.fetchone()
+        return result[0] if result else 0
+
+
+
+def if_exists_room(roomname):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM rooms WHERE roomname=?', (roomname,))
+        room = cursor.fetchone()
+        conn.commit()
+
+    if not room:
+        return False
+    else:
+        return True
+
+
+def get_messages_by_room(room: str):
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT id , sender_id, roomname, content, timestamp FROM messages WHERE roomname=? ORDER BY timestamp ASC", (room,))
+        rows = cursor.fetchall()
+
+        return [
+            {"id":r[0] , "sender_id": r[1], "roomname": r[2], "content": r[3], "timestamp": r[4]}
+            for r in rows
+        ]
 
 
 def add_room(roomname, user_id):

@@ -21,9 +21,16 @@
                 <a href="{{ url_for('about') }}" class="nav-link">О нас</a>
             </nav>
             <div class="auth-buttons">
-                <a href="{{ url_for('login_user') }}" class="btn btn-outline">Войти</a>
-                <a href="{{ url_for('register_user') }}" class="btn btn-primary">Регистрация</a>
-            </div>
+                {% if is_authenticated %}
+                    <a href="{{ url_for('profile') }}" class="profile-link">
+                        <img src="{{ user.photo }}" alt="avatar" class="user-avatar">
+                    </a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-outline">Выйти</a>
+                {% else %}
+                    <a href="{{ url_for('login_user') }}" class="btn btn-outline">Войти</a>
+                    <a href="{{ url_for('register_user') }}" class="btn btn-primary">Регистрация</a>
+                {% endif %}
+</div>
         </div>
     </header>
 
