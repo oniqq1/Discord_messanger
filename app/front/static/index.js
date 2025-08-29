@@ -169,3 +169,10 @@ document.addEventListener('DOMContentLoaded', function() {
         joinRoom(currentRoom);
     };
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const popup = document.querySelector(".error-popup");
+    if (popup) {
+        setTimeout(() => popup.remove(), 5000);
+    }
+});
