@@ -190,6 +190,9 @@ document.getElementById('joinRoomBtn').onclick = function() {
 };
 
 function joinRoom(room) {
+    const chat = document.getElementById('chatMessages');
+    chat.innerHTML = '';
+
     if (ws) {
         ws.onclose = null;
         ws.close();

@@ -11,11 +11,15 @@ connections = {}
 
 @router.get("/")
 async def index(request: Request ):
-    token = request.cookies.get("access_token")
-    if token:
-        user = dict(get_current_user(token=token))
-        return templates.TemplateResponse("index.html", {"request": request , "is_authenticated": token , 'user': user})
-    return templates.TemplateResponse("index.html", {"request": request , "is_authenticated": token})
+    try:
+        token = request.cookies.get("access_token")
+        if token:
+            user = dict(get_current_user(token=token))
+            return templates.TemplateResponse("index.html",
+                                              {"request": request, "is_authenticated": token, 'user': user})
+    except Exception:
+        pass
+    return templates.TemplateResponse("index.html", {"request": request , "is_authenticated": False})
 
 @router.get("/about/")
 async def about(request: Request):
@@ -132,6 +136,7 @@ async def delete_room(roomname: str, current_user: dict = Depends(get_current_us
             raise HTTPException(status_code=403, detail="Вы не участник этой комнаты")
 
         cursor.execute("DELETE FROM rooms WHERE roomname = ?", (roomname,))
+        cursor.execute("DELETE FROM messages WHERE roomname = ?", (roomname,))
         conn.commit()
 
     if roomname in connections:
